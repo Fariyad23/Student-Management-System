@@ -1,0 +1,13 @@
+package com.fariyad.an.St_management;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class StManagementApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(StManagementApplication.class, args);
+	}
+
+}
