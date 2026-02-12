@@ -1,0 +1,8 @@
+com\fariyad\an\St_management\entity\Student.class
+com\fariyad\an\St_management\repository\StudentRepository.class
+com\fariyad\an\St_management\controller\StudentController.class
+com\fariyad\an\St_management\ui\StudentUI$1.class
+com\fariyad\an\St_management\dto\StudentDot.class
+com\fariyad\an\St_management\controller\Student.class
+com\fariyad\an\St_management\StManagementApplication.class
+com\fariyad\an\St_management\ui\StudentUI.class
