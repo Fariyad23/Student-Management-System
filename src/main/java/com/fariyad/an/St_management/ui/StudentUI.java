@@ -18,7 +18,7 @@ public class StudentUI extends JFrame {
     private DefaultTableModel model;
     private JTextField nameField, emailField;
 
-    private final String BASE_URL = "http://127.0.0.1:8080/student";
+    private final String BASE_URL = "http://localhost:8081/student";
 
     public StudentUI() {
         setTitle("🎓 Student Management System");
