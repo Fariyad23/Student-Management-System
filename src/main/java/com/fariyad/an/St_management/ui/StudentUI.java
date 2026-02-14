@@ -18,7 +18,12 @@ public class StudentUI extends JFrame {
     private DefaultTableModel model;
     private JTextField nameField, emailField;
 
-    private final String BASE_URL = "http://localhost:8081/student";
+    // ✅ Change only this if your controller mapping is different
+    // Examples:
+    // "http://localhost:8081/student"
+    // "http://localhost:8081/students"
+    // "http://localhost:8081/api/student"
+    private final String BASE_URL = "http://localhost:8080/student";
 
     public StudentUI() {
         setTitle("🎓 Student Management System");
@@ -39,10 +44,7 @@ public class StudentUI extends JFrame {
         panel.add(title, BorderLayout.NORTH);
 
         model = new DefaultTableModel(new String[]{"ID", "Name", "Email"}, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            @Override public boolean isCellEditable(int row, int column) { return false; }
         };
 
         table = new JTable(model);
@@ -87,6 +89,7 @@ public class StudentUI extends JFrame {
 
         setVisible(true);
 
+        // Load on start
         loadStudents();
     }
 
@@ -107,15 +110,17 @@ public class StudentUI extends JFrame {
         try {
             model.setRowCount(0);
 
-            HttpURLConnection conn = (HttpURLConnection) new URL(BASE_URL).openConnection();
-            conn.setRequestMethod("GET");
-
+            HttpURLConnection conn = openConnection(BASE_URL, "GET");
             int code = conn.getResponseCode();
             String response = readResponse(conn, code);
 
             if (code >= 200 && code < 300) {
-                JSONArray array = new JSONArray(response);
+                if (response == null || response.trim().isEmpty()) {
+                    // empty list
+                    return;
+                }
 
+                JSONArray array = new JSONArray(response);
                 for (int i = 0; i < array.length(); i++) {
                     JSONObject obj = array.getJSONObject(i);
 
@@ -126,11 +131,10 @@ public class StudentUI extends JFrame {
                     model.addRow(new Object[]{id, name, email});
                 }
             } else {
-                JOptionPane.showMessageDialog(this, "Load failed: " + response);
+                showError("Load failed", code, response);
             }
-
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error loading students: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error loading students:\n" + ex.getMessage());
         }
     }
 
@@ -144,9 +148,7 @@ public class StudentUI extends JFrame {
         }
 
         try {
-            HttpURLConnection conn = (HttpURLConnection) new URL(BASE_URL).openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+            HttpURLConnection conn = openConnection(BASE_URL, "POST");
             conn.setDoOutput(true);
 
             JSONObject json = new JSONObject();
@@ -165,11 +167,11 @@ public class StudentUI extends JFrame {
                 clearFields();
                 loadStudents();
             } else {
-                JOptionPane.showMessageDialog(this, "Add failed: " + response);
+                showError("Add failed", code, response);
             }
 
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error adding student: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error adding student:\n" + ex.getMessage());
         }
     }
 
@@ -191,9 +193,7 @@ public class StudentUI extends JFrame {
         try {
             long id = Long.parseLong(model.getValueAt(row, 0).toString());
 
-            HttpURLConnection conn = (HttpURLConnection) new URL(BASE_URL + "/" + id).openConnection();
-            conn.setRequestMethod("DELETE");
-
+            HttpURLConnection conn = openConnection(BASE_URL + "/" + id, "DELETE");
             int code = conn.getResponseCode();
             String response = readResponse(conn, code);
 
@@ -201,12 +201,29 @@ public class StudentUI extends JFrame {
                 JOptionPane.showMessageDialog(this, "Student Deleted Successfully!");
                 loadStudents();
             } else {
-                JOptionPane.showMessageDialog(this, "Delete failed: " + response);
+                showError("Delete failed", code, response);
             }
 
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error deleting student: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error deleting student:\n" + ex.getMessage());
         }
+    }
+
+    private HttpURLConnection openConnection(String url, String method) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setRequestMethod(method);
+        conn.setConnectTimeout(8000);
+        conn.setReadTimeout(8000);
+
+        // ✅ Helpful headers
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+        return conn;
+    }
+
+    private void showError(String title, int code, String response) {
+        String msg = title + "\nHTTP " + code + "\n\n" + (response == null ? "" : response);
+        JOptionPane.showMessageDialog(this, msg);
     }
 
     private String readResponse(HttpURLConnection conn, int code) throws IOException {

@@ -1,4 +1,6 @@
 package com.fariyad.an.St_management.controller;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 
 import com.fariyad.an.St_management.entity.Student;
 import com.fariyad.an.St_management.repository.StudentRepository;
@@ -7,12 +9,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/student") // ya "/students" (aapki marzi)
+@RequestMapping("/student")
 @CrossOrigin(origins = "http://localhost:5173")
 public class StudentController {
 
-    @Autowired
-    private StudentRepository studentRepository;
+    private final StudentRepository studentRepository;
+
+    public StudentController(StudentRepository studentRepository) {
+        this.studentRepository = studentRepository;
+    }
 
     @GetMapping
     public List<Student> getAllStudents() {
@@ -25,12 +30,13 @@ public class StudentController {
     }
 
     @DeleteMapping("/{id}")
-    public String deleteStudent(@PathVariable Integer id) {
+    public ResponseEntity<String> deleteStudent(@PathVariable Integer id) {
         if (studentRepository.existsById(id)) {
             studentRepository.deleteById(id);
-            return "Student with id " + id + " deleted successfully!";
+            return ResponseEntity.ok("Student deleted successfully!");
         } else {
-            return "Student not found with id " + id;
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Student not found!");
         }
     }
 }
